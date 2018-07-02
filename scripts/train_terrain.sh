@@ -12,7 +12,7 @@ NITER_DECAY=50
 UPSAMPLE='bilinear'
 
 # training
-GPU_ID=1
+GPU_ID=2
 DISPLAY_ID=$((GPU_ID*10+1))
 CHECKPOINTS_DIR=../checkpoints_pub/${CLASS}/
 NAME=${CLASS}_${MODEL}
