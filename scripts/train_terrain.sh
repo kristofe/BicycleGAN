@@ -13,7 +13,7 @@ UPSAMPLE='bilinear'
 
 # training
 GPU_ID=2
-EPOCHS=${NITER} + ${NITER_DECAY}
+EPOCHS=$((NITER + NITER_DECAY))
 DISPLAY_ID=$((GPU_ID*10+1))
 CHECKPOINTS_DIR=./checkpoints_pub/${CLASS}_${EPOCHS}/
 NAME=${CLASS}_${MODEL}
