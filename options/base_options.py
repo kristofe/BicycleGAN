@@ -45,7 +45,7 @@ class BaseOptions():
         self.parser.add_argument('--which_model_netG', type=str, default='unet_256', help='selects model to use for netG')
         self.parser.add_argument('--which_model_netE', type=str, default='resnet_256', help='selects model to use for netE')
         self.parser.add_argument('--norm', type=str, default='instance', help='instance normalization or batch normalization')
-        self.parser.add_argument('--upsample', type=str, default='basic', help='basic | bilinear')
+        self.parser.add_argument('--upsample', type=str, default='basic', help='basic | bilinear | nearest')
         self.parser.add_argument('--nl', type=str, default='relu', help='non-linearity activation: relu | lrelu | elu')
 
         # extra parameters
