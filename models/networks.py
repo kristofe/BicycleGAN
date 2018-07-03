@@ -529,6 +529,10 @@ def upsampleLayer(inplanes, outplanes, upsample='basic', padding_type='zero'):
         upconv = [nn.Upsample(scale_factor=2, mode='bilinear'),
                   nn.ReflectionPad2d(1),
                   nn.Conv2d(inplanes, outplanes, kernel_size=3, stride=1, padding=0)]
+    elif upsample == 'nearest':
+        upconv = [nn.Upsample(scale_factor=2, mode='nearest'),
+                  nn.ReflectionPad2d(1),
+                  nn.Conv2d(inplanes, outplanes, kernel_size=3, stride=1, padding=0)]
     else:
         raise NotImplementedError(
             'upsample layer [%s] not implemented' % upsample)
