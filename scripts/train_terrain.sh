@@ -3,7 +3,7 @@
 # Example usage
 # bash scripts/train_terrain.sh -g 2 -d datasets/terrain_2560/aligned/ -z 2 -i 150
 
-while getopts g:d:z:i: option; do
+while getopts g:d:z:i:n: option; do
     case "${option}" in
         g) GPU="${OPTARG}"
         ;;
@@ -30,7 +30,7 @@ CLASS='terrain'  # facades, day2night, edges2shoes, edges2handbags, maps
 [[ ! -z "${Z_DIM}" ]] && NZ=${Z_DIM} || Z_DIM=8
 [[ ! -z "${NUM_ITER}" ]] && NITER=${NUM_ITER} || NITER=50
 [[ ! -z "${NUM_ITER}" ]] && NITER_DECAY=${NUM_ITER} || NITER_DECAY=50
-[[ ! -z "${PNAME}" ]] && NAME=${DIR} || NAME=${CLASS}_${MODEL}_${DATADIR}
+[[ ! -z "${PNAME}" ]] && NAME=${PNAME} || NAME=${CLASS}_${MODEL}_${DATADIR}
 
 echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY} name: ${NAME}"
 
