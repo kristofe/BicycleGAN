@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Example usage
+# bash scripts/train_terrain.sh -g 2 -d datasets/terrain_2560/aligned/ -z 2 -i 150
+
 while getopts g:d:z:i: option; do
     case "${option}" in
         g) GPU="${OPTARG}"
