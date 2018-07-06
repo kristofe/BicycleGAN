@@ -51,13 +51,12 @@ USE_L2='--use_L2'
 # training
 #GPU_ID=2
 #DATADIR='terrain_2560/aligned'
-DATADIR='terrain'
+#DATADIR='terrain'
 EPOCHS=$((NITER + NITER_DECAY))
 DISPLAY_ID=$((GPU_ID*10+1))
 CHECKPOINTS_DIR=./checkpoints_pub/${CLASS}_${EPOCHS}_${UPSAMPLE}_${WHERE_ADD}_${NZ}/
-NAME=${CLASS}_${MODEL}_${DATADIR}
+#NAME=${CLASS}_${MODEL}_${DATADIR}
 
-exit
 
 # command
 CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
