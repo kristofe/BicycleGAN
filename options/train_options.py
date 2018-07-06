@@ -29,4 +29,5 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--lambda_z', type=float, default=0.5, help='weight for ||E(G(random_z)) - random_z||')
         self.parser.add_argument('--lambda_kl', type=float, default=0.01, help='weight for KL loss')
         self.parser.add_argument('--use_same_D', action='store_true', help='if two Ds share the weights or not')
+        self.parser.add_argument('--use_L2', action='store_true', help='use L2 instead of L1 for regularization loss')
         self.isTrain = True

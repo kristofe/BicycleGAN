@@ -76,7 +76,11 @@ class BaseModel():
         # define loss functions
         self.criterionGAN = networks.GANLoss(
             mse_loss=not use_sigmoid, tensor=self.Tensor)
-        self.criterionL1 = torch.nn.L1Loss()
+        if opt.use_L2:
+            self.criterionL1 = torch.nn.MSELoss()
+        else:
+            self.criterionL1 = torch.nn.L1Loss()
+
         self.criterionZ = torch.nn.L1Loss()
 
         if opt.isTrain:

@@ -9,10 +9,11 @@ FINE_SIZE=256
 INPUT_NC=3
 NITER=25
 NITER_DECAY=25
-UPSAMPLE='bilinear' #'nearest'  or 'basic'  or 'bilinear'
+UPSAMPLE='basic' #'nearest'  or 'basic'  or 'bilinear'
 WHERE_ADD='all'
 CONDITIONAL_D='--conditional_D'
-LAMBDA_L1=12 # default is 10
+LAMBDA_L1=10 # default is 10
+USE_L2='--use_L2'
 
 # training
 GPU_ID=2
@@ -40,4 +41,5 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
   --where_add ${WHERE_ADD} \
   ${NO_FLIP} \
   ${CONDITIONAL_D} \
-  --lambda_L1 ${LAMBDA_L1}
+  --lambda_L1 ${LAMBDA_L1} \
+  ${USE_L2}
