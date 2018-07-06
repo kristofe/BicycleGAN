@@ -13,14 +13,15 @@ while getopts g:d:z:i: option; do
         ;;
         i) NUM_ITER="${OPTARG}"
         ;;
+        n) PNAME="${OPTARG}"
+        ;;
     esac
 done
 
-echo "GPU: ${GPU} datadir: ${DIR} z length: ${Z_DIM}  iter count: ${NUM_ITER}"
+echo "GPU: ${GPU} datadir: ${DIR} z length: ${Z_DIM}  iter count: ${NUM_ITER} name: ${PNAME}"
 
 
 MODEL='bicycle_gan'
-# dataset details
 CLASS='terrain'  # facades, day2night, edges2shoes, edges2handbags, maps
 
 # Default values for parameters that aren't passed
@@ -29,8 +30,9 @@ CLASS='terrain'  # facades, day2night, edges2shoes, edges2handbags, maps
 [[ ! -z "${Z_DIM}" ]] && NZ=${Z_DIM} || Z_DIM=8
 [[ ! -z "${NUM_ITER}" ]] && NITER=${NUM_ITER} || NITER=50
 [[ ! -z "${NUM_ITER}" ]] && NITER_DECAY=${NUM_ITER} || NITER_DECAY=50
+[[ ! -z "${PNAME}" ]] && NAME=${DIR} || NAME=${CLASS}_${MODEL}_${DATADIR}
 
-echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY}"
+echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY} name: ${NAME}"
 
 #NZ=2
 NO_FLIP='--no_flip'
