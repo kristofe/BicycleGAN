@@ -7,8 +7,8 @@ DIRECTION='AtoB'
 LOAD_SIZE=256
 FINE_SIZE=256
 INPUT_NC=3
-NITER=100
-NITER_DECAY=100
+NITER=150
+NITER_DECAY=150
 UPSAMPLE='basic' #'nearest'  or 'basic'  or 'bilinear'
 WHERE_ADD='all'
 CONDITIONAL_D='--conditional_D'
@@ -17,15 +17,17 @@ USE_L2='--use_L2'
 
 # training
 GPU_ID=2
+#DATADIR='terrain_2560/aligned'
+DATADIR='terrain'
 EPOCHS=$((NITER + NITER_DECAY))
 DISPLAY_ID=$((GPU_ID*10+1))
 CHECKPOINTS_DIR=./checkpoints_pub/${CLASS}_${EPOCHS}_${UPSAMPLE}_${WHERE_ADD}_${NZ}/
-NAME=${CLASS}_${MODEL}
+NAME=${CLASS}_${MODEL}_${DATADIR}
 
 # command
 CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
   --display_id ${DISPLAY_ID} \
-  --dataroot ./datasets/${CLASS} \
+  --dataroot ./datasets/${DATADIR} \
   --name ${NAME} \
   --model ${MODEL} \
   --which_direction ${DIRECTION} \
