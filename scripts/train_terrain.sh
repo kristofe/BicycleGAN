@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Example usage
-# bash scripts/train_terrain.sh -g 2 -d datasets/terrain_2560/aligned/ -z 2 -i 150
+# bash scripts/train_terrain.sh -g 2 -d terrain_2560/aligned/ -z 2 -i 150
 
-while getopts g:d:z:i:n: option; do
+while getopts g:d:z:i:n:u: option; do
     case "${option}" in
         g) GPU="${OPTARG}"
         ;;
@@ -15,10 +15,12 @@ while getopts g:d:z:i:n: option; do
         ;;
         n) PNAME="${OPTARG}"
         ;;
+        u) UPS="${OPTARG}"
+        ;;
     esac
 done
 
-echo "GPU: ${GPU} datadir: ${DIR} z length: ${Z_DIM}  iter count: ${NUM_ITER} name: ${PNAME}"
+echo "GPU: ${GPU} datadir: ${DIR} z length: ${Z_DIM}  iter count: ${NUM_ITER} name: ${PNAME} upsample: ${UPS}"
 
 
 MODEL='bicycle_gan'
@@ -30,9 +32,10 @@ CLASS='terrain'  # facades, day2night, edges2shoes, edges2handbags, maps
 [[ ! -z "${Z_DIM}" ]] && NZ=${Z_DIM} || Z_DIM=8
 [[ ! -z "${NUM_ITER}" ]] && NITER=${NUM_ITER} || NITER=50
 [[ ! -z "${NUM_ITER}" ]] && NITER_DECAY=${NUM_ITER} || NITER_DECAY=50
-[[ ! -z "${PNAME}" ]] && NAME=${PNAME} || NAME=${CLASS}_${MODEL}_${DATADIR}
+[[ ! -z "${UPS}" ]] && UPSAMPLE=${UPS} || UPSAMPLE='basic'
+[[ ! -z "${PNAME}" ]] && NAME=${PNAME} || NAME=${CLASS}_${MODEL}_${UPS}_${DATADIR}
 
-echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY} name: ${NAME}"
+echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY} upsample: ${UPSAMPLE} name: ${NAME}"
 
 #NZ=2
 NO_FLIP='--no_flip'
@@ -42,7 +45,7 @@ FINE_SIZE=256
 INPUT_NC=3
 #NITER=150
 #NITER_DECAY=150
-UPSAMPLE='basic' #'nearest'  or 'basic'  or 'bilinear'
+#UPSAMPLE='basic' #'nearest'  or 'basic'  or 'bilinear'
 WHERE_ADD='all'
 CONDITIONAL_D='--conditional_D'
 LAMBDA_L1=10 # default is 10
