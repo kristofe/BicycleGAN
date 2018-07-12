@@ -28,8 +28,8 @@ CLASS='terrain'  # facades, day2night, edges2shoes, edges2handbags, maps
 
 # Default values for parameters that aren't passed
 [[ ! -z "${GPU}" ]] && GPU_ID=${GPU} || GPU_ID=0
-[[ ! -z "${DIR}" ]] && DATADIR=${DIR} || DATADIR='terrain'
-[[ ! -z "${Z_DIM}" ]] && NZ=${Z_DIM} || Z_DIM=8
+[[ ! -z "${DIR}" ]] && DATADIR=${DIR} || DATADIR='terrain_2560_small/aligned'
+[[ ! -z "${Z_DIM}" ]] && NZ=${Z_DIM} || NZ=2
 [[ ! -z "${NUM_ITER}" ]] && NITER=${NUM_ITER} || NITER=50
 [[ ! -z "${NUM_ITER}" ]] && NITER_DECAY=${NUM_ITER} || NITER_DECAY=50
 [[ ! -z "${UPS}" ]] && UPSAMPLE=${UPS} || UPSAMPLE='basic'
