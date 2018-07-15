@@ -57,10 +57,9 @@ USE_L2='--use_L2'
 #DATADIR='terrain'
 EPOCHS=$((NITER + NITER_DECAY))
 DISPLAY_ID=$((GPU_ID*10+1))
-CHECKPOINTS_DIR=./checkpoints_pub/${CLASS}_${EPOCHS}_${UPSAMPLE}_${WHERE_ADD}_${NZ}/
+CHECKPOINTS_DIR=checkpoints_pub/${CLASS}_${EPOCHS}_${UPSAMPLE}_${WHERE_ADD}_${NZ}/
 #NAME=${CLASS}_${MODEL}_${DATADIR}
 
-exit
 # command
 CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
   --display_id ${DISPLAY_ID} \
