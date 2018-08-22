@@ -120,7 +120,7 @@ class BiCycleGANModel(BaseModel):
             self.loss_kl = 0
         # 3, reconstruction |fake_B-real_B|
         if self.opt.lambda_L1 > 0.0:
-            if self.use_normals:
+            if self.use_normals and False:
                 self.loss_G_L1 = self.criterionL1(self.fake_normal_encoded, self.real_normal_encoded) * self.opt.lambda_L1
             else:
                 self.loss_G_L1 = self.criterionL1(self.fake_B_encoded, self.real_B_encoded) * self.opt.lambda_L1
