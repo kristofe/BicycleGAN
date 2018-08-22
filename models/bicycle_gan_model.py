@@ -69,10 +69,10 @@ class BiCycleGANModel(BaseModel):
             self.real_data_random = self.real_B_random
 
         if self.use_normals:
-            self.fake_normal_encoded = self.gen_normals(self.fake_B_encoded[:,0:1,:,:])
-            self.fake_normal_random = self.gen_normals(self.fake_B_random[:,0:1,:,:])
-            self.real_normal_encoded = self.gen_normals(self.real_B_encoded[:,0:1,:,:])
-            self.real_normal_random = self.gen_normals(self.real_B_random[:,0:1,:,:])
+            self.fake_normal_encoded = self.gen_normals(self.fake_B_encoded)
+            self.fake_normal_random = self.gen_normals(self.fake_B_random)
+            self.real_normal_encoded = self.gen_normals(self.real_B_encoded)
+            self.real_normal_random = self.gen_normals(self.real_B_random)
 
         # compute z_predict
         if self.opt.lambda_z > 0.0:
@@ -120,7 +120,7 @@ class BiCycleGANModel(BaseModel):
             self.loss_kl = 0
         # 3, reconstruction |fake_B-real_B|
         if self.opt.lambda_L1 > 0.0:
-            if self.use_normals and False:
+            if self.use_normals:
                 self.loss_G_L1 = self.criterionL1(self.fake_normal_encoded, self.real_normal_encoded) * self.opt.lambda_L1
             else:
                 self.loss_G_L1 = self.criterionL1(self.fake_B_encoded, self.real_B_encoded) * self.opt.lambda_L1
