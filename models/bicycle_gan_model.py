@@ -4,7 +4,7 @@ from collections import OrderedDict
 from torch.autograd import Variable
 import util.util as util
 from .base_model import BaseModel
-import heightmap_normals_loss
+from  .heightmap_normals_loss import HeightmapNormalsLoss
 
 
 class BiCycleGANModel(BaseModel):
@@ -24,7 +24,7 @@ class BiCycleGANModel(BaseModel):
         self.init_data(opt, use_D=use_D, use_D2=use_D2, use_E=use_E, use_vae=True)
 
         if self.use_normals:
-            self.gen_normals = heightmap_normals_loss.HeightmapNormalsLoss()
+            self.gen_normals = HeightmapNormalsLoss(self.opt.gpu_ids)
         self.skip = False
 
 
@@ -69,10 +69,10 @@ class BiCycleGANModel(BaseModel):
             self.real_data_random = self.real_B_random
 
         if self.use_normals:
-            self.fake_normal_encoded = self.gen_normals(self.fake_data_encoded)
-            self.fake_normal_random = self.gen_normals(self.fake_data_random)
-            self.real_normal_encoded = self.gen_normals(self.real_data_encoded)
-            self.real_normal_random = self.gen_normals(self.real_data_random)
+            self.fake_normal_encoded = self.gen_normals(self.fake_B_encoded[:,0:1,:,:])
+            self.fake_normal_random = self.gen_normals(self.fake_B_random[:,0:1,:,:])
+            self.real_normal_encoded = self.gen_normals(self.real_B_encoded[:,0:1,:,:])
+            self.real_normal_random = self.gen_normals(self.real_B_random[:,0:1,:,:])
 
         # compute z_predict
         if self.opt.lambda_z > 0.0:

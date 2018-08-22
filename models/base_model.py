@@ -3,7 +3,7 @@ import torch
 import util.util as util
 from torch.autograd import Variable
 from . import networks
-import heightmap_normals_loss
+#import heightmap_normals_loss
 
 
 class BaseModel():

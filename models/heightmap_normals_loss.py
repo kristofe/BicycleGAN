@@ -10,9 +10,11 @@ from PIL import Image
 class HeightmapNormalsLoss(torch.nn.Module):
     # This generates a normal map from a heightmap using convolutions and is fully differentiable
     # TODO: Handle cuda calls
-    def __init__(self, use_sobel=True):
+    def __init__(self, gpu_ids='', use_sobel=True):
         super(HeightmapNormalsLoss, self).__init__()
 
+        self.gpu_ids = gpu_ids
+        self.Tensor = torch.cuda.FloatTensor if self.gpu_ids else torch.Tensor
         self.use_sobel = use_sobel
         self.bias = None
         self.last_generated_normals = None
@@ -23,9 +25,8 @@ class HeightmapNormalsLoss(torch.nn.Module):
             self.base_x_wts, self.base_y_wts = self.get_simple_filters()
         #self.loss = torch.nn.L1Loss()
 
-    @staticmethod
-    def get_sobel_filters():
-        x_wts = torch.FloatTensor([
+    def get_sobel_filters(self):
+        x_wts = self.Tensor([
             [
                 [
                     [1.0, 0.0, -1.0],
@@ -34,7 +35,7 @@ class HeightmapNormalsLoss(torch.nn.Module):
                 ]
             ]
         ])
-        y_wts = torch.FloatTensor([
+        y_wts = self.Tensor([
             [
                 [
                     [1.0,  2.0,  1.0],
@@ -45,9 +46,9 @@ class HeightmapNormalsLoss(torch.nn.Module):
         ])
         return x_wts, y_wts
 
-    @staticmethod
-    def get_simple_filters():
-        x_wts = torch.FloatTensor([
+
+    def get_simple_filters(self):
+        x_wts = self.Tensor([
             [
                 [
                     [0.0, 0.0,  0.0],
@@ -56,7 +57,7 @@ class HeightmapNormalsLoss(torch.nn.Module):
                 ]
             ]
         ])
-        y_wts = torch.FloatTensor([
+        y_wts = self.Tensor([
             [
                 [
                     [0.0,  1.0,  0.0],
@@ -79,15 +80,17 @@ class HeightmapNormalsLoss(torch.nn.Module):
         n = (n * 0.5 + 0.5) * 255
         # assumes 1 x 3 x W x H tensor
         n = n.squeeze().permute(1, 2, 0)
-        return Image.fromarray(n.cpu().float().numpy().astype(np.uint8))
+        #return Image.fromarray(n.detach().cpu().float().numpy().astype(np.uint8))
+        return n.detach().cpu().float().numpy().astype(np.uint8)
 
     def convert_normals_to_image(self, normals):
         assert(normals is not None)
-        imgs = []
-        for i in range(normals.size(0)):
-            img = self.normals_to_image(normals[i])
-            imgs.append(img)
-        return imgs
+        #imgs = []
+        #for i in range(normals.size(0)):
+        #    img = self.normals_to_image(normals[i])
+        #    imgs.append(img)
+        #return img
+        return self.normals_to_image(normals[0])
 
     def calculate_normals(self, x):
         assert(x.dim() == 4)  # assume its a batch of 2D images
