@@ -21,7 +21,7 @@ class HeightmapNormalsLoss(torch.nn.Module):
             self.base_x_wts, self.base_y_wts = self.get_sobel_filters()
         else:
             self.base_x_wts, self.base_y_wts = self.get_simple_filters()
-        self.loss = torch.nn.L1Loss()
+        #self.loss = torch.nn.L1Loss()
 
     @staticmethod
     def get_sobel_filters():
@@ -79,9 +79,9 @@ class HeightmapNormalsLoss(torch.nn.Module):
         n = (n * 0.5 + 0.5) * 255
         # assumes 1 x 3 x W x H tensor
         n = n.squeeze().permute(1, 2, 0)
-        return Image.fromarray(n.numpy().astype(np.uint8))
+        return Image.fromarray(n.cpu().float().numpy().astype(np.uint8))
 
-    def get_images_from_last_normals(self, normals):
+    def convert_normals_to_image(self, normals):
         assert(normals is not None)
         imgs = []
         for i in range(normals.size(0)):
@@ -117,8 +117,9 @@ class HeightmapNormalsLoss(torch.nn.Module):
 
     def forward(self, *x):
         generated_height_data = x[0]
-        target_height_data = x[1]
+        #target_height_data = x[1]
         self.last_generated_normals = self.calculate_normals(generated_height_data)
-        self.last_target_normals = self.calculate_normals(target_height_data)
+        #self.last_target_normals = self.calculate_normals(target_height_data)
 
-        return self.loss(self.last_generated_normals, self.last_target_normals)
+        #return self.loss(self.last_generated_normals, self.last_target_normals)
+        return self. last_generated_normals

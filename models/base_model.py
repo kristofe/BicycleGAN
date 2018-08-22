@@ -81,8 +81,8 @@ class BaseModel():
             self.criterionL1 = torch.nn.MSELoss()
         else:
             self.criterionL1 = torch.nn.L1Loss()
-        if opt.use_normals:
-            self.criterionL1 = heightmap_normals_loss.HeightmapNormalsLoss()
+        #if opt.use_normals:
+        #    self.criterionL1 = heightmap_normals_loss.HeightmapNormalsLoss()
 
         self.criterionZ = torch.nn.L1Loss()
 

@@ -4,6 +4,7 @@ from collections import OrderedDict
 from torch.autograd import Variable
 import util.util as util
 from .base_model import BaseModel
+import heightmap_normals_loss
 
 
 class BiCycleGANModel(BaseModel):
@@ -19,7 +20,11 @@ class BiCycleGANModel(BaseModel):
         use_E = opt.isTrain or not opt.no_encode
         use_L2 = opt.isTrain and opt.use_L2
         BaseModel.initialize(self, opt)
+        self.use_normals = self.opt.use_normals
         self.init_data(opt, use_D=use_D, use_D2=use_D2, use_E=use_E, use_vae=True)
+
+        if self.use_normals:
+            self.gen_normals = heightmap_normals_loss.HeightmapNormalsLoss()
         self.skip = False
 
 
@@ -62,6 +67,12 @@ class BiCycleGANModel(BaseModel):
             self.fake_data_random = self.fake_B_random
             self.real_data_encoded = self.real_B_encoded
             self.real_data_random = self.real_B_random
+
+        if self.use_normals:
+            self.fake_normal_encoded = self.gen_normals(self.fake_data_encoded)
+            self.fake_normal_random = self.gen_normals(self.fake_data_random)
+            self.real_normal_encoded = self.gen_normals(self.real_data_encoded)
+            self.real_normal_random = self.gen_normals(self.real_data_random)
 
         # compute z_predict
         if self.opt.lambda_z > 0.0:
@@ -109,7 +120,10 @@ class BiCycleGANModel(BaseModel):
             self.loss_kl = 0
         # 3, reconstruction |fake_B-real_B|
         if self.opt.lambda_L1 > 0.0:
-            self.loss_G_L1 = self.criterionL1(self.fake_B_encoded, self.real_B_encoded) * self.opt.lambda_L1
+            if self.use_normals:
+                self.loss_G_L1 = self.criterionL1(self.fake_normal_encoded, self.real_normal_encoded) * self.opt.lambda_L1
+            else:
+                self.loss_G_L1 = self.criterionL1(self.fake_B_encoded, self.real_B_encoded) * self.opt.lambda_L1
         else:
             self.loss_G_L1 = 0.0
 
@@ -201,8 +215,10 @@ class BiCycleGANModel(BaseModel):
             ret_dict['fake_random'] = fake_random
             ret_dict['fake_encoded'] = fake_encoded
             if self.opt.use_normals:
-                ret_dict['fake_normals'] = self.criterionL1.get_images_from_last_normals(self.criterionL1.last_generated_normals)
-                ret_dict['real_normals'] = self.criterionL1.get_images_from_last_normals(self.criterionL1.last_target_normals)
+                ret_dict['fake_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.fake_normal_encoded)
+                ret_dict['fake_normal_random'] = self.gen_normals.convert_normals_to_image(self.fake_normal_random)
+                ret_dict['real_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.real_normal_encoded)
+                ret_dict['real_normal_random'] = self.gen_normals.convert_normals_to_image(self.real_normal_random)
 
         return ret_dict
 
