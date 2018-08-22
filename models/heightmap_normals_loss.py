@@ -7,19 +7,21 @@ import torch.utils.data
 from PIL import Image
 
 
-class HeightmapNormals(torch.nn.Module):
+class HeightmapNormalsLoss(torch.nn.Module):
     # This generates a normal map from a heightmap using convolutions and is fully differentiable
     # TODO: Handle cuda calls
     def __init__(self, use_sobel=True):
-        super(HeightmapNormals, self).__init__()
+        super(HeightmapNormalsLoss, self).__init__()
 
         self.use_sobel = use_sobel
         self.bias = None
-        self.last_normals = None
+        self.last_generated_normals = None
+        self.last_target_normals = None
         if self.use_sobel:
             self.base_x_wts, self.base_y_wts = self.get_sobel_filters()
         else:
             self.base_x_wts, self.base_y_wts = self.get_simple_filters()
+        self.loss = torch.nn.L1Loss()
 
     @staticmethod
     def get_sobel_filters():
@@ -79,11 +81,11 @@ class HeightmapNormals(torch.nn.Module):
         n = n.squeeze().permute(1, 2, 0)
         return Image.fromarray(n.numpy().astype(np.uint8))
 
-    def get_images_from_last_normals(self):
-        assert(self.last_normals is not None)
+    def get_images_from_last_normals(self, normals):
+        assert(normals is not None)
         imgs = []
-        for i in range(self.last_normals.size(0)):
-            img = self.normals_to_image(self.last_normals[i])
+        for i in range(normals.size(0)):
+            img = self.normals_to_image(normals[i])
             imgs.append(img)
         return imgs
 
@@ -114,6 +116,9 @@ class HeightmapNormals(torch.nn.Module):
         return norm/length
 
     def forward(self, *x):
-        height_data = x[0]
-        self.last_normals = self.calculate_normals(height_data)
-        return self.last_normals
+        generated_height_data = x[0]
+        target_height_data = x[1]
+        self.last_generated_normals = self.calculate_normals(generated_height_data)
+        self.last_target_normals = self.calculate_normals(target_height_data)
+
+        return self.loss(self.last_generated_normals, self.last_target_normals)

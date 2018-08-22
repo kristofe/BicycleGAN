@@ -50,6 +50,7 @@ WHERE_ADD='all'
 CONDITIONAL_D='--conditional_D'
 LAMBDA_L1=10 # default is 10
 USE_L2='--use_L2'
+USE_NORMALS='--use_normals'
 
 # training
 #GPU_ID=2
@@ -80,4 +81,5 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
   ${NO_FLIP} \
   ${CONDITIONAL_D} \
   --lambda_L1 ${LAMBDA_L1} \
-  ${USE_L2}
+  ${USE_L2} \
+  ${USE_NORMALS}

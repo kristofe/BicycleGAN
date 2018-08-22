@@ -22,6 +22,8 @@ class BiCycleGANModel(BaseModel):
         self.init_data(opt, use_D=use_D, use_D2=use_D2, use_E=use_E, use_vae=True)
         self.skip = False
 
+
+
     def is_skip(self):
         return self.skip
 
@@ -198,6 +200,10 @@ class BiCycleGANModel(BaseModel):
             fake_encoded = util.tensor2im(self.fake_B_encoded.data)
             ret_dict['fake_random'] = fake_random
             ret_dict['fake_encoded'] = fake_encoded
+            if self.opt.use_normals:
+                ret_dict['fake_normals'] = self.criterionL1.get_images_from_last_normals(self.criterionL1.last_generated_normals)
+                ret_dict['real_normals'] = self.criterionL1.get_images_from_last_normals(self.criterionL1.last_target_normals)
+
         return ret_dict
 
     def save(self, label):
