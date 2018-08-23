@@ -105,15 +105,20 @@ class HeightmapNormalsLoss(torch.nn.Module):
         gx = F.conv2d(x, x_wts, bias=None, stride=1, padding=0)
         gy = F.conv2d(x, y_wts, bias=None, stride=1, padding=0)
 
+        # prevent nan's by clamping so gz_start is never >= 1.0
+        # that would cause taking sqrt of 1.0 - gz_start to be nan.
+        gz_start = gx * gx - gy * gy
+        gz_start = torch.clamp(gz_start, -1.0, 0.99999)
+        gz_start = 1.0 - gz_start
+
+        if torch.min(gz_start) < 0.0:
+            print(gz_start[gz_start < 0.0].size())
+            gz_start[gz_start < 0.0] = 0.000001
+
         # the leading coefficient controls sharpness.
         # Default should be 0.5.
         # < 1.0 is sharper.
         # > 1.0 is smoother
-        gz_start = 1.0 - gx * gx - gy * gy
-        if torch.min(gz_start) < 0.0:
-            #print(gz_start[gz_start < 0.0].size())
-            gz_start[gz_start < 0.0] = 0.0
-
         gz = 0.25 * (gz_start).sqrt()
         #gz = 0.25 * (1.0 - gx * gx - gy * gy).sqrt()
 
