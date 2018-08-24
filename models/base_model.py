@@ -34,12 +34,15 @@ class BaseModel():
             use_D = False
             use_D2 = False
 
+        # netD are for encoded fake images
         if use_D:
             self.netD = networks.define_D(D_output_nc, opt.ndf,
                                           which_model_netD=opt.which_model_netD,
                                           norm=opt.norm, nl=opt.nl,
                                           use_sigmoid=use_sigmoid, init_type=opt.init_type, num_Ds=opt.num_Ds, gpu_ids=self.gpu_ids)
             networks.print_network(self.netD)
+
+        # netD2 is for random fake images
         if use_D2:
             self.netD2 = networks.define_D(D_output_nc, opt.ndf,
                                            which_model_netD=opt.which_model_netD2,
@@ -81,8 +84,6 @@ class BaseModel():
             self.criterionL1 = torch.nn.MSELoss()
         else:
             self.criterionL1 = torch.nn.L1Loss()
-        #if opt.use_normals:
-        #    self.criterionL1 = heightmap_normals_loss.HeightmapNormalsLoss()
 
         self.criterionZ = torch.nn.L1Loss()
 

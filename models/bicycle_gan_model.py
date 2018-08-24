@@ -104,6 +104,7 @@ class BiCycleGANModel(BaseModel):
             loss_G_GAN = 0
         return loss_G_GAN * ll
 
+    # TODO: Add feature space loss here!!!!!!
     def backward_EG(self):
         # 1, G(A) should fool D
         self.loss_G_GAN = self.backward_G_GAN(
