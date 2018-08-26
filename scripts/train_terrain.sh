@@ -38,7 +38,8 @@ CLASS='terrain'  # facades, day2night, edges2shoes, edges2handbags, maps
 echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY} upsample: ${UPSAMPLE} name: ${NAME}"
 
 #NZ=2
-NO_FLIP='--no_flip'
+#NO_FLIP='--no_flip'
+NO_FLIP=''
 DIRECTION='AtoB'
 LOAD_SIZE=256
 FINE_SIZE=256
@@ -48,9 +49,11 @@ INPUT_NC=3
 #UPSAMPLE='basic' #'nearest'  or 'basic'  or 'bilinear'
 WHERE_ADD='all'
 CONDITIONAL_D='--conditional_D'
-LAMBDA_L1=10 # default is 10
+LAMBDA_L1=100 # default is 10
 USE_L2='--use_L2'
 USE_NORMALS='--use_normals'
+WHICH_MODEL_NETD='basic_256'
+WHICH_MODEL_NETD2='basic_256'
 
 # training
 #GPU_ID=2
@@ -82,4 +85,6 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
   ${CONDITIONAL_D} \
   --lambda_L1 ${LAMBDA_L1} \
   ${USE_L2} \
-  ${USE_NORMALS}
+  ${USE_NORMALS} \
+  --which_model_netD ${WHICH_MODEL_NETD} \
+  --which_model_netD2 ${WHICH_MODEL_NETD2}

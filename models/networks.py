@@ -245,14 +245,22 @@ class D_NLayersMulti(nn.Module):
         # st()
         self.gpu_ids = gpu_ids
         self.num_D = num_D
+
+        # Current models use num_D == 2
+        print("num_D: {}".format(num_D))
+
         if num_D == 1:
             layers = self.get_layers(
                 input_nc, ndf, n_layers, norm_layer, use_sigmoid)
             self.model = nn.Sequential(*layers)
         else:
             self.model = ListModule(self, 'model')
+            print("model: {}".format(self.model))
+            print("---")
             layers = self.get_layers(
                 input_nc, ndf, n_layers, norm_layer, use_sigmoid)
+            print("layers: {}".format(layers))
+            print("---")
             self.model.append(nn.Sequential(*layers))
             self.down = nn.AvgPool2d(3, stride=2, padding=[
                                      1, 1], count_include_pad=False)
@@ -260,6 +268,8 @@ class D_NLayersMulti(nn.Module):
                 ndf_i = int(round(ndf / (2**(i + 1))))
                 layers = self.get_layers(
                     input_nc, ndf_i, n_layers, norm_layer, use_sigmoid)
+                print("layers {:d}: {}".format(i, layers))
+                print("---")
                 self.model.append(nn.Sequential(*layers))
 
     def get_layers(self, input_nc, ndf=64, n_layers=3,
