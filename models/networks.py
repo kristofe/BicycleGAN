@@ -164,7 +164,9 @@ def define_D(input_nc, ndf, which_model_netD,
         netD = D_NLayers(input_nc, ndf, n_layers=2, norm_layer=norm_layer,
                          nl_layer=nl_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
     elif which_model_netD == 'basic_256':
-        netD = D_NLayers(input_nc, ndf, n_layers=3, norm_layer=norm_layer,
+        #netD = D_NLayers(input_nc, ndf, n_layers=3, norm_layer=norm_layer,
+        #                 nl_layer=nl_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
+        netD = D_256(input_nc, ndf, norm_layer=norm_layer,
                          nl_layer=nl_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
     elif which_model_netD == 'basic_128_multi':
         netD = D_NLayersMulti(input_nc=input_nc, ndf=ndf, n_layers=2, norm_layer=norm_layer,
@@ -377,6 +379,9 @@ class D_NLayers(nn.Module):
                       stride=2, padding=padw, bias=use_bias),
             nl_layer()
         ]
+        layer_num = 1
+        print('relu_{:d}'.format(layer_num))
+        layer_num += 1
 
         nf_mult = 1
         nf_mult_prev = 1
@@ -388,6 +393,8 @@ class D_NLayers(nn.Module):
             if norm_layer is not None:
                 sequence += [norm_layer(ndf * nf_mult)]
             sequence += [nl_layer()]
+            print('relu_{:d}'.format(layer_num))
+            layer_num += 1
 
         nf_mult_prev = nf_mult
         nf_mult = min(2**n_layers, 8)
@@ -397,6 +404,10 @@ class D_NLayers(nn.Module):
         if norm_layer is not None:
             sequence += [norm_layer(ndf * nf_mult)]
         sequence += [nl_layer()]
+
+        print('relu_{:d}'.format(layer_num))
+        layer_num += 1
+
         sequence += [nn.Conv2d(ndf * nf_mult, 1, kernel_size=4,
                                stride=1, padding=0, bias=use_bias)]
 
@@ -409,6 +420,78 @@ class D_NLayers(nn.Module):
         output = self.model(input)
         return output
 
+
+class D_256(nn.Module):
+    def __init__(self, input_nc=3, ndf=64,
+                 norm_layer=None, nl_layer=None, use_sigmoid=False, gpu_ids=[]):
+        super(D_256, self).__init__()
+        self.gpu_ids = gpu_ids
+        n_layers = 3
+
+        self.feature_layers = []
+        kw, padw, use_bias = 4, 1, True
+        # st()
+        layer_num = 1
+        sequence = [
+            nn.Conv2d(input_nc, ndf, kernel_size=kw,
+                      stride=2, padding=padw, bias=use_bias),
+            nl_layer()
+        ]
+
+        self.relu_1 = sequence
+
+        # decreasing rez layers
+        n = 1
+        nf_mult = min(2**n,8)
+        self.relu_k = self.make_layer(n, nf_mult, ndf, kw, padw, use_bias, norm_layer, nl_layer)
+        n = 2
+        nf_mult = min(2**n,8)
+        self.relu_3 = self.make_layer(n, nf_mult, ndf, kw, padw, use_bias, norm_layer, nl_layer)
+
+
+        nf_mult_prev = nf_mult
+        nf_mult = min(2**n_layers, 8)
+
+        # this is where we have to restore nf_mult_prev and nf_mult
+        sequence += [
+            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
+                      kernel_size=kw, stride=1, padding=padw, bias=use_bias)]
+        if norm_layer is not None:
+            sequence += [norm_layer(ndf * nf_mult)]
+        sequence += [nl_layer()]
+
+        self.relu_4 = sequence
+
+        sequence = [nn.Conv2d(ndf * nf_mult, 1, kernel_size=4,
+                                  stride=1, padding=0, bias=use_bias)]
+
+        if use_sigmoid:
+            sequence += [nn.Sigmoid()]
+
+        self.final = nn.Sequential(*sequence)
+
+    def make_layer(self, n, nf_mult, ndf, kw, padw, use_bias, norm_layer, nl_layer):
+        nf_mult_prev = nf_mult
+        nf_mult = min(2**n, 8)
+        sequence = [nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
+                                 kernel_size=kw, stride=2, padding=padw, bias=use_bias)]
+        if norm_layer is not None:
+            sequence += [norm_layer(ndf * nf_mult)]
+        sequence += [nl_layer()]
+
+        return sequence
+
+    def forward_new(self, x):
+        self.relu_1_x = self.relu_1(x)
+        self.relu_2_x = self.relu_2(self._relu_1_x)
+        self.relu_3_x = self.relu_3(self._relu_2_x)
+        self.relu_4_x = self.relu_4(self._relu_3_x)
+        output = self.final(self._relu_4_x)
+        return output
+
+    def forward(self, input):
+        output = self.model(input)
+        return output
 
 def print_network(net):
     num_params = 0
