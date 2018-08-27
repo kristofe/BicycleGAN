@@ -442,11 +442,13 @@ class D_256(nn.Module):
 
         # decreasing rez layers
         n = 1
+        nf_mult_prev = 1
         nf_mult = min(2**n,8)
-        self.relu_k = self.make_layer(n, nf_mult, ndf, kw, padw, use_bias, norm_layer, nl_layer)
+        self.relu_2 = self.make_layer(nf_mult, nf_mult_prev, ndf, kw, padw, use_bias, norm_layer, nl_layer)
         n = 2
+        nf_mult_prev = nf_mult
         nf_mult = min(2**n,8)
-        self.relu_3 = self.make_layer(n, nf_mult, ndf, kw, padw, use_bias, norm_layer, nl_layer)
+        self.relu_3 = self.make_layer(nf_mult, nf_mult_prev, ndf, kw, padw, use_bias, norm_layer, nl_layer)
 
 
         nf_mult_prev = nf_mult
@@ -470,9 +472,7 @@ class D_256(nn.Module):
 
         self.final = nn.Sequential(*sequence)
 
-    def make_layer(self, n, nf_mult, ndf, kw, padw, use_bias, norm_layer, nl_layer):
-        nf_mult_prev = nf_mult
-        nf_mult = min(2**n, 8)
+    def make_layer(self, nf_mult, nf_mult_prev, ndf, kw, padw, use_bias, norm_layer, nl_layer):
         sequence = [nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
                                  kernel_size=kw, stride=2, padding=padw, bias=use_bias)]
         if norm_layer is not None:
@@ -483,10 +483,10 @@ class D_256(nn.Module):
 
     def forward(self, x):
         self.relu_1_x = self.relu_1(x)
-        self.relu_2_x = self.relu_2(self._relu_1_x)
-        self.relu_3_x = self.relu_3(self._relu_2_x)
-        self.relu_4_x = self.relu_4(self._relu_3_x)
-        output = self.final(self._relu_4_x)
+        self.relu_2_x = self.relu_2(self.relu_1_x)
+        self.relu_3_x = self.relu_3(self.relu_2_x)
+        self.relu_4_x = self.relu_4(self.relu_3_x)
+        output = self.final(self.relu_4_x)
         return output
 
 def print_network(net):
