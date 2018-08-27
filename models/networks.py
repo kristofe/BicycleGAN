@@ -438,7 +438,7 @@ class D_256(nn.Module):
             nl_layer()
         ]
 
-        self.relu_1 = sequence
+        self.relu_1 = nn.Sequential(*sequence)
 
         # decreasing rez layers
         n = 1
@@ -453,14 +453,14 @@ class D_256(nn.Module):
         nf_mult = min(2**n_layers, 8)
 
         # this is where we have to restore nf_mult_prev and nf_mult
-        sequence += [
+        sequence = [
             nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
                       kernel_size=kw, stride=1, padding=padw, bias=use_bias)]
         if norm_layer is not None:
             sequence += [norm_layer(ndf * nf_mult)]
         sequence += [nl_layer()]
 
-        self.relu_4 = sequence
+        self.relu_4 = nn.Sequential(*sequence)
 
         sequence = [nn.Conv2d(ndf * nf_mult, 1, kernel_size=4,
                                   stride=1, padding=0, bias=use_bias)]
@@ -479,18 +479,14 @@ class D_256(nn.Module):
             sequence += [norm_layer(ndf * nf_mult)]
         sequence += [nl_layer()]
 
-        return sequence
+        return nn.Sequential(*sequence)
 
-    def forward_new(self, x):
+    def forward(self, x):
         self.relu_1_x = self.relu_1(x)
         self.relu_2_x = self.relu_2(self._relu_1_x)
         self.relu_3_x = self.relu_3(self._relu_2_x)
         self.relu_4_x = self.relu_4(self._relu_3_x)
         output = self.final(self._relu_4_x)
-        return output
-
-    def forward(self, input):
-        output = self.model(input)
         return output
 
 def print_network(net):
