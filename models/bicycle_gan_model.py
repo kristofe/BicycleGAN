@@ -243,14 +243,14 @@ class BiCycleGANModel(BaseModel):
                 #im_fr4 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_4)) # 512x31x31
                 #im_rr4 = util.tensor2im(kdsutil.features2gridim(self.real_relu_4)) # 512x31x31
                 feat_dict = OrderedDict()
-                feat_dict['fake feat relu1'] = im_fr1
-                feat_dict['real feat relu1'] = im_rr1
+                #feat_dict['fake feat relu1'] = im_fr1
+                #feat_dict['real feat relu1'] = im_rr1
                 feat_dict['fake feat relu2'] = im_fr2
                 feat_dict['real feat relu2'] = im_rr2
-                feat_dict['fake feat relu3'] = im_fr3
-                feat_dict['real feat relu3'] = im_rr3
-                feat_dict['fake feat relu4'] = im_fr4
-                feat_dict['real feat relu4'] = im_rr4
+                #feat_dict['fake feat relu3'] = im_fr3
+                #feat_dict['real feat relu3'] = im_rr3
+                #feat_dict['fake feat relu4'] = im_fr4
+                #feat_dict['real feat relu4'] = im_rr4
                 '''
                 self.fake_relu_2 = self.netD.relu_2_x  # 128x64x64
                 self.fake_relu_3 = self.netD.relu_3_x  # 256x32x32
