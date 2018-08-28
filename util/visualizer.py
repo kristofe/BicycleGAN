@@ -97,6 +97,25 @@ class Visualizer():
                 webpage.add_images(ims, txts, links, width=self.win_size)
             webpage.save()
 
+    def display_current_feature_results(self, visuals, epoch, ncols=2, save_result=False, image_format='jpg'):
+        if self.display_id > 0:  # show images in the browser
+            title = self.name
+            nrows = int(math.ceil(len(visuals.items()) / float(ncols)))
+            images = []
+            idx = 0
+            for label, image_numpy in visuals.items():
+                title += " | " if idx % nrows == 0 else ", "
+                title += label
+                images.append(image_numpy.transpose([2, 0, 1]))
+                idx += 1
+            if len(visuals.items()) % ncols != 0:
+                white_image = np.ones_like(
+                    image_numpy.transpose([2, 0, 1])) * 255
+                images.append(white_image)
+            self.vis.images(images, nrow=nrows, win=self.display_id + 10,
+                            opts=dict(title=title))
+
+
     # errors: dictionary of error labels and values
     def plot_current_errors(self, epoch, counter_ratio, opt, errors):
         if not hasattr(self, 'plot_data'):

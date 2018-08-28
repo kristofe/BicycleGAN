@@ -5,6 +5,7 @@ from torch.autograd import Variable
 import util.util as util
 from .base_model import BaseModel
 from  .heightmap_normals_loss import HeightmapNormalsLoss
+import util.kdsutil as kdsutil
 
 
 class BiCycleGANModel(BaseModel):
@@ -87,8 +88,19 @@ class BiCycleGANModel(BaseModel):
     def backward_D(self, netD, real, fake):
         # Fake, stop backprop to the generator by detaching fake_B
         pred_fake = netD.forward(fake.detach())
+        # TODO: Get features from fake here
+        self.fake_relu_1 = self.netD.relu_1_x  # 64x128x128
+        self.fake_relu_2 = self.netD.relu_2_x  # 128x64x64
+        self.fake_relu_3 = self.netD.relu_3_x  # 256x32x32
+        self.fake_relu_4 = self.netD.relu_4_x  # 512x31x31
         # real
         pred_real = netD.forward(real)
+        # TODO: Get features from real here
+        self.real_relu_1 = self.netD.relu_1_x  # 64x128x128
+        self.real_relu_2 = self.netD.relu_2_x  # 128x64x64
+        self.real_relu_3 = self.netD.relu_3_x  # 256x32x32
+        self.real_relu_4 = self.netD.relu_4_x  # 512x31x31
+
         loss_D_fake, losses_D_fake = self.criterionGAN(pred_fake, False)
         loss_D_real, losses_D_real = self.criterionGAN(pred_real, True)
         # Combined loss
@@ -221,7 +233,36 @@ class BiCycleGANModel(BaseModel):
                 ret_dict['real_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.real_normal_encoded)
                 ret_dict['real_normal_random'] = self.gen_normals.convert_normals_to_image(self.real_normal_random)
 
-        return ret_dict
+            if self.opt.use_features or True:  # TODO: make using features an option
+                #im_fr1 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_1)) # 64x128x128
+                #im_rr1 = util.tensor2im(kdsutil.features2gridim(self.real_relu_1)) # 64x128x128
+                im_fr2 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_2)) # 128x64x64
+                im_rr2 = util.tensor2im(kdsutil.features2gridim(self.real_relu_2)) # 128x64x64
+                #im_fr3 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_3)) # 256x32x32
+                #im_rr3 = util.tensor2im(kdsutil.features2gridim(self.real_relu_3)) # 256x32x32
+                #im_fr4 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_4)) # 512x31x31
+                #im_rr4 = util.tensor2im(kdsutil.features2gridim(self.real_relu_4)) # 512x31x31
+                feat_dict = OrderedDict()
+                feat_dict['fake feat relu1'] = im_fr1
+                feat_dict['real feat relu1'] = im_rr1
+                feat_dict['fake feat relu2'] = im_fr2
+                feat_dict['real feat relu2'] = im_rr2
+                feat_dict['fake feat relu3'] = im_fr3
+                feat_dict['real feat relu3'] = im_rr3
+                feat_dict['fake feat relu4'] = im_fr4
+                feat_dict['real feat relu4'] = im_rr4
+                '''
+                self.fake_relu_2 = self.netD.relu_2_x  # 128x64x64
+                self.fake_relu_3 = self.netD.relu_3_x  # 256x32x32
+                self.fake_relu_4 = self.netD.relu_4_x  # 512x31x31
+                self.real_relu_1 = self.netD.relu_1_x  # 64x128x128
+                self.real_relu_2 = self.netD.relu_2_x  # 128x64x64
+                self.real_relu_3 = self.netD.relu_3_x  # 256x32x32
+                self.real_relu_4 = self.netD.relu_4_x  # 512x31x31
+                '''
+
+
+        return ret_dict, feat_dict
 
     def save(self, label):
         self.save_network(self.netG, 'G', label, self.gpu_ids)
