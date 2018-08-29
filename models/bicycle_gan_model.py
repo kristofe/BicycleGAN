@@ -39,7 +39,9 @@ class BiCycleGANModel(BaseModel):
         if self.skip:
             print('skip this point data_size = %d' % self.input_A.size(0))
             return
-        half_size = self.opt.batchSize // 2
+
+        # THIS IS CRUDE.  The batch size must be even so it can use the odd pairs as "encoded" and the even as "random"
+        half_size = self.opt.batchSize // 2  # floordiv operation
         self.real_A = Variable(self.input_A)
         self.real_B = Variable(self.input_B)
         # A1, B1 for encoded; A2, B2 for random
@@ -61,7 +63,10 @@ class BiCycleGANModel(BaseModel):
         if self.opt.conditional_D:   # tedious conditoinal data
             self.fake_data_encoded = torch.cat([self.real_A_encoded, self.fake_B_encoded], 1)
             self.real_data_encoded = torch.cat([self.real_A_encoded, self.real_B_encoded], 1)
-            self.fake_data_random = torch.cat([self.real_A_encoded, self.fake_B_random], 1)
+            # FIXME: is the following a bug?
+            # self.fake_data_random = torch.cat([self.real_A_encoded, self.fake_B_random], 1)
+            # I corrected it
+            self.fake_data_random = torch.cat([self.real_A_random, self.fake_B_random], 1)
             self.real_data_random = torch.cat([self.real_A_random, self.real_B_random], 1)
         else:
             self.fake_data_encoded = self.fake_B_encoded
@@ -85,21 +90,22 @@ class BiCycleGANModel(BaseModel):
         eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
         return eps.mul(std).add_(mu)
 
-    def backward_D(self, netD, real, fake):
+    def backward_D(self, netD, real, fake, encoded):
         # Fake, stop backprop to the generator by detaching fake_B
         pred_fake = netD.forward(fake.detach())
-        # TODO: Get features from fake here
-        self.fake_relu_1 = self.netD.relu_1_x  # 64x128x128
-        self.fake_relu_2 = self.netD.relu_2_x  # 128x64x64
-        self.fake_relu_3 = self.netD.relu_3_x  # 256x32x32
-        self.fake_relu_4 = self.netD.relu_4_x  # 512x31x31
+        if encoded:
+            # TODO: Get features from fake here
+            self.fake_relu_1 = netD.relu_1_x  # 64x128x128
+            self.fake_relu_2 = netD.relu_2_x  # 128x64x64
+            self.fake_relu_3 = netD.relu_3_x  # 256x32x32
+            self.fake_relu_4 = netD.relu_4_x  # 512x31x31
         # real
         pred_real = netD.forward(real)
-        # TODO: Get features from real here
-        self.real_relu_1 = self.netD.relu_1_x  # 64x128x128
-        self.real_relu_2 = self.netD.relu_2_x  # 128x64x64
-        self.real_relu_3 = self.netD.relu_3_x  # 256x32x32
-        self.real_relu_4 = self.netD.relu_4_x  # 512x31x31
+        if encoded:
+            self.real_relu_1 = netD.relu_1_x  # 64x128x128
+            self.real_relu_2 = netD.relu_2_x  # 128x64x64
+            self.real_relu_3 = netD.relu_3_x  # 256x32x32
+            self.real_relu_4 = netD.relu_4_x  # 512x31x31
 
         loss_D_fake, losses_D_fake = self.criterionGAN(pred_fake, False)
         loss_D_real, losses_D_real = self.criterionGAN(pred_real, True)
@@ -152,14 +158,14 @@ class BiCycleGANModel(BaseModel):
         # update D1
         if self.opt.lambda_GAN > 0.0:
             self.optimizer_D.zero_grad()
-            self.loss_D, self.losses_D = self.backward_D(self.netD, self.real_data_encoded, self.fake_data_encoded)
+            self.loss_D, self.losses_D = self.backward_D(self.netD, self.real_data_encoded, self.fake_data_encoded, True)
             if self.opt.use_same_D:
-                self.loss_D2, self.losses_D2 = self.backward_D(self.netD, self.real_data_random, self.fake_data_random)
+                self.loss_D2, self.losses_D2 = self.backward_D(self.netD, self.real_data_random, self.fake_data_random, False)
             self.optimizer_D.step()
 
         if self.opt.lambda_GAN2 > 0.0 and not self.opt.use_same_D:
             self.optimizer_D2.zero_grad()
-            self.loss_D2, self.losses_D2 = self.backward_D(self.netD2, self.real_data_random, self.fake_data_random)
+            self.loss_D2, self.losses_D2 = self.backward_D(self.netD2, self.real_data_random, self.fake_data_random, False)
             self.optimizer_D2.step()
 
     def backward_G_alone(self):
@@ -234,35 +240,29 @@ class BiCycleGANModel(BaseModel):
                 ret_dict['real_normal_random'] = self.gen_normals.convert_normals_to_image(self.real_normal_random)
 
             if self.opt.use_features or True:  # TODO: make using features an option
-                #im_fr1 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_1)) # 64x128x128
-                #im_rr1 = util.tensor2im(kdsutil.features2gridim(self.real_relu_1)) # 64x128x128
+                im_fr1 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_1)) # 64x128x128
+                im_rr1 = util.tensor2im(kdsutil.features2gridim(self.real_relu_1)) # 64x128x128
                 im_fr2 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_2)) # 128x64x64
                 im_rr2 = util.tensor2im(kdsutil.features2gridim(self.real_relu_2)) # 128x64x64
-                #im_fr3 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_3)) # 256x32x32
-                #im_rr3 = util.tensor2im(kdsutil.features2gridim(self.real_relu_3)) # 256x32x32
-                #im_fr4 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_4)) # 512x31x31
-                #im_rr4 = util.tensor2im(kdsutil.features2gridim(self.real_relu_4)) # 512x31x31
-                feat_dict = OrderedDict()
-                #feat_dict['fake feat relu1'] = im_fr1
-                #feat_dict['real feat relu1'] = im_rr1
-                feat_dict['fake feat relu2'] = im_fr2
-                feat_dict['real feat relu2'] = im_rr2
-                #feat_dict['fake feat relu3'] = im_fr3
-                #feat_dict['real feat relu3'] = im_rr3
-                #feat_dict['fake feat relu4'] = im_fr4
-                #feat_dict['real feat relu4'] = im_rr4
-                '''
-                self.fake_relu_2 = self.netD.relu_2_x  # 128x64x64
-                self.fake_relu_3 = self.netD.relu_3_x  # 256x32x32
-                self.fake_relu_4 = self.netD.relu_4_x  # 512x31x31
-                self.real_relu_1 = self.netD.relu_1_x  # 64x128x128
-                self.real_relu_2 = self.netD.relu_2_x  # 128x64x64
-                self.real_relu_3 = self.netD.relu_3_x  # 256x32x32
-                self.real_relu_4 = self.netD.relu_4_x  # 512x31x31
-                '''
+                im_fr3 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_3)) # 256x32x32
+                im_rr3 = util.tensor2im(kdsutil.features2gridim(self.real_relu_3)) # 256x32x32
+                im_fr4 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_4)) # 512x31x31
+                im_rr4 = util.tensor2im(kdsutil.features2gridim(self.real_relu_4)) # 512x31x31
+                r1_dict = OrderedDict()
+                r2_dict = OrderedDict()
+                r3_dict = OrderedDict()
+                r4_dict = OrderedDict()
+                r1_dict['fake feat relu1'] = im_fr1
+                r1_dict['real feat relu1'] = im_rr1
+                r2_dict['fake feat relu2'] = im_fr2
+                r2_dict['real feat relu2'] = im_rr2
+                r3_dict['fake feat relu3'] = im_fr3
+                r3_dict['real feat relu3'] = im_rr3
+                r4_dict['fake feat relu4'] = im_fr4
+                r4_dict['real feat relu4'] = im_rr4
 
 
-        return ret_dict, feat_dict
+        return ret_dict, r1_dict, r2_dict, r3_dict, r4_dict
 
     def save(self, label):
         self.save_network(self.netG, 'G', label, self.gpu_ids)

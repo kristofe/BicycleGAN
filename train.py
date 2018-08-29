@@ -33,7 +33,7 @@ for epoch in range(1, opt.niter + opt.niter_decay + 1):
             visualizer.display_current_results(
                 model.get_current_visuals()[0], epoch, ncols=1, save_result=save_result)
             visualizer.display_current_feature_results(
-                model.get_current_visuals()[1], epoch, ncols=1, save_result=save_result)
+                model.get_current_visuals()[1:], epoch, ncols=1, save_result=save_result)
             save_result = False
 
         if total_steps % opt.print_freq == 0:
