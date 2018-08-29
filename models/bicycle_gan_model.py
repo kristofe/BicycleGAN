@@ -27,6 +27,7 @@ class BiCycleGANModel(BaseModel):
         if self.use_normals:
             self.gen_normals = HeightmapNormalsLoss(self.opt.gpu_ids)
         self.skip = False
+        self.mse_loss = torch.nn.MSELoss()
 
 
 
@@ -108,6 +109,11 @@ class BiCycleGANModel(BaseModel):
         loss_D_real, losses_D_real = self.criterionGAN(pred_real, True)
         # Combined loss
         loss_D = loss_D_fake + loss_D_real
+
+        if self.opt.use_features and encoded:
+            self.loss_feat = self.mse_loss(self.real_relu_4.detach(), self.fake_relu_4.detach())
+            loss_D += self.opt.lambda_features * self.loss_feat
+
         loss_D.backward()
         return loss_D, [loss_D_fake, loss_D_real]
 
@@ -215,6 +221,10 @@ class BiCycleGANModel(BaseModel):
         if self.opt.lambda_GAN2 > 0.0:
             ret_dict['G_GAN2'] = self.loss_G_GAN2.data[0]
             ret_dict['D_GAN2'] = self.loss_D2.data[0]
+
+        if self.opt.use_features and self.opt.lambda_GAN > 0.0:
+            ret_dict['D_ENC_FEAT'] = self.loss_feat.data[0]
+
         return ret_dict
 
     def get_current_visuals(self):
@@ -239,16 +249,16 @@ class BiCycleGANModel(BaseModel):
             if self.opt.use_features or True:  # TODO: make using features an option
                 im_fr1 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_1)) # 64x128x128
                 im_rr1 = util.tensor2im(kdsutil.features2gridim(self.real_relu_1)) # 64x128x128
-                im_cr1 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_1 * self.fake_relu_1), normalize=False)) # 64x128x128
+                im_cr1 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_1 * self.fake_relu_1), normalize=True)) # 64x128x128
                 im_fr2 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_2)) # 128x64x64
                 im_rr2 = util.tensor2im(kdsutil.features2gridim(self.real_relu_2)) # 128x64x64
-                im_cr2 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_2 * self.fake_relu_2), normalize=False)) # 128x64x64
+                im_cr2 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_2 * self.fake_relu_2), normalize=True)) # 128x64x64
                 im_fr3 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_3)) # 256x32x32
                 im_rr3 = util.tensor2im(kdsutil.features2gridim(self.real_relu_3)) # 256x32x32
-                im_cr3 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_3 * self.fake_relu_3), normalize=False)) # 256x32x32
+                im_cr3 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_3 * self.fake_relu_3), normalize=True)) # 256x32x32
                 im_fr4 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_4)) # 512x31x31
                 im_rr4 = util.tensor2im(kdsutil.features2gridim(self.real_relu_4)) # 512x31x31
-                im_cr4 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_4 * self.fake_relu_4), normalize=False)) # 512x31x31
+                im_cr4 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_4 * self.fake_relu_4), normalize=True)) # 512x31x31
                 r1_dict = OrderedDict()
                 r2_dict = OrderedDict()
                 r3_dict = OrderedDict()
@@ -268,6 +278,11 @@ class BiCycleGANModel(BaseModel):
 
 
         return ret_dict, r1_dict, r2_dict, r3_dict, r4_dict
+
+    def normalize_features(self, feats, eps=1e-10):
+        print("Sum size: {}".format(sum.size()))
+        sum = torch.sum(feats**2, dim=1)
+        print("Sum size: {}".format(sum.size()))
 
     def save(self, label):
         self.save_network(self.netG, 'G', label, self.gpu_ids)

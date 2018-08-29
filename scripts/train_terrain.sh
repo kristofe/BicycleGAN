@@ -52,6 +52,7 @@ CONDITIONAL_D='--conditional_D'
 LAMBDA_L1=100 # default is 10
 USE_L2='--use_L2'
 USE_NORMALS='--use_normals'
+USE_FEATURES='--use_features'
 WHICH_MODEL_NETD='basic_256'
 WHICH_MODEL_NETD2='basic_256'
 
@@ -63,6 +64,7 @@ EPOCHS=$((NITER + NITER_DECAY))
 DISPLAY_ID=$((GPU_ID*10+1))
 CHECKPOINTS_DIR=checkpoints_pub/${CLASS}_${EPOCHS}_${UPSAMPLE}_${WHERE_ADD}_${NZ}/
 #NAME=${CLASS}_${MODEL}_${DATADIR}
+
 
 # command
 CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
@@ -86,5 +88,6 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
   --lambda_L1 ${LAMBDA_L1} \
   ${USE_L2} \
   ${USE_NORMALS} \
+  ${USE_FEATURES} \
   --which_model_netD ${WHICH_MODEL_NETD} \
   --which_model_netD2 ${WHICH_MODEL_NETD2}
