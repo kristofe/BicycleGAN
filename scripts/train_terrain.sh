@@ -17,10 +17,12 @@ while getopts g:d:z:i:n:u: option; do
         ;;
         u) UPS="${OPTARG}"
         ;;
+        f) LF="${OPTARG}"
+        ;;
     esac
 done
 
-echo "GPU: ${GPU} datadir: ${DIR} z length: ${Z_DIM}  iter count: ${NUM_ITER} name: ${PNAME} upsample: ${UPS}"
+echo "GPU: ${GPU} datadir: ${DIR} z length: ${Z_DIM}  iter count: ${NUM_ITER} name: ${PNAME} upsample: ${UPS} lamb feat: ${LF}"
 
 
 MODEL='bicycle_gan'
@@ -33,9 +35,10 @@ CLASS='terrain'  # facades, day2night, edges2shoes, edges2handbags, maps
 [[ ! -z "${NUM_ITER}" ]] && NITER=${NUM_ITER} || NITER=50
 [[ ! -z "${NUM_ITER}" ]] && NITER_DECAY=${NUM_ITER} || NITER_DECAY=50
 [[ ! -z "${UPS}" ]] && UPSAMPLE=${UPS} || UPSAMPLE='basic'
+[[ ! -z "${LF}" ]] && LAMBDAF=${LF} || LAMBDAF=0.01
 [[ ! -z "${PNAME}" ]] && NAME=${PNAME} || NAME=${CLASS}_${MODEL}_${UPS}_${DATADIR}
 
-echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY} upsample: ${UPSAMPLE} name: ${NAME}"
+echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY} upsample: ${UPSAMPLE} lambda feat: ${LAMBDAF} name: ${NAME}"
 
 #NZ=2
 #NO_FLIP='--no_flip'
@@ -89,5 +92,6 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
   ${USE_L2} \
   ${USE_NORMALS} \
   ${USE_FEATURES} \
+  --lambda_features ${LAMBDAF} \
   --which_model_netD ${WHICH_MODEL_NETD} \
   --which_model_netD2 ${WHICH_MODEL_NETD2}
