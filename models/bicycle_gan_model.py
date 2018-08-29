@@ -111,7 +111,11 @@ class BiCycleGANModel(BaseModel):
         loss_D = loss_D_fake + loss_D_real
 
         if self.opt.use_features and encoded:
-            self.loss_feat = self.mse_loss(self.real_relu_4.detach(), self.fake_relu_4.detach())
+            self.loss_feat_1 = self.mse_loss(self.real_relu_1.detach(), self.fake_relu_1.detach())
+            self.loss_feat_2 = self.mse_loss(self.real_relu_2.detach(), self.fake_relu_2.detach())
+            self.loss_feat_3 = self.mse_loss(self.real_relu_3.detach(), self.fake_relu_3.detach())
+            self.loss_feat_4 = self.mse_loss(self.real_relu_4.detach(), self.fake_relu_4.detach())
+            self.loss_feat = self.loss_feat_1 + self.loss_feat_2 + self.loss_feat_3 + self.loss_feat_4
             loss_D += self.opt.lambda_features * self.loss_feat
 
         loss_D.backward()

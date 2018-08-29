@@ -32,5 +32,5 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--use_L2', action='store_true', help='use L2 instead of L1 for regularization loss')
         self.parser.add_argument('--use_normals', action='store_true', help='use L1 on normals instead of L1 on pixels for regularization loss')
         self.parser.add_argument('--use_features', action='store_true', help='use features based loss')
-        self.parser.add_argument('--lambda_features', type=float, default=0.1, help='weight for features based loss')
+        self.parser.add_argument('--lambda_features', type=float, default=0.01, help='weight for features based loss')
         self.isTrain = True
