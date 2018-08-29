@@ -239,24 +239,32 @@ class BiCycleGANModel(BaseModel):
             if self.opt.use_features or True:  # TODO: make using features an option
                 im_fr1 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_1)) # 64x128x128
                 im_rr1 = util.tensor2im(kdsutil.features2gridim(self.real_relu_1)) # 64x128x128
+                im_cr1 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_1 * self.fake_relu_1), normalize=False)) # 64x128x128
                 im_fr2 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_2)) # 128x64x64
                 im_rr2 = util.tensor2im(kdsutil.features2gridim(self.real_relu_2)) # 128x64x64
+                im_cr2 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_2 * self.fake_relu_2), normalize=False)) # 128x64x64
                 im_fr3 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_3)) # 256x32x32
                 im_rr3 = util.tensor2im(kdsutil.features2gridim(self.real_relu_3)) # 256x32x32
+                im_cr3 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_3 * self.fake_relu_3), normalize=False)) # 256x32x32
                 im_fr4 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_4)) # 512x31x31
                 im_rr4 = util.tensor2im(kdsutil.features2gridim(self.real_relu_4)) # 512x31x31
+                im_cr4 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_4 * self.fake_relu_4), normalize=False)) # 512x31x31
                 r1_dict = OrderedDict()
                 r2_dict = OrderedDict()
                 r3_dict = OrderedDict()
                 r4_dict = OrderedDict()
                 r1_dict['fake feat relu1'] = im_fr1
                 r1_dict['real feat relu1'] = im_rr1
+                r1_dict['mod feat relu1'] = im_cr1
                 r2_dict['fake feat relu2'] = im_fr2
                 r2_dict['real feat relu2'] = im_rr2
+                r2_dict['mod feat relu2'] = im_cr2
                 r3_dict['fake feat relu3'] = im_fr3
                 r3_dict['real feat relu3'] = im_rr3
+                r3_dict['mod feat relu3'] = im_cr3
                 r4_dict['fake feat relu4'] = im_fr4
                 r4_dict['real feat relu4'] = im_rr4
+                r4_dict['mod feat relu4'] = im_cr4
 
 
         return ret_dict, r1_dict, r2_dict, r3_dict, r4_dict
