@@ -59,14 +59,11 @@ class BiCycleGANModel(BaseModel):
         # generate fake_B_encoded
         self.fake_B_encoded = self.netG.forward(self.real_A_encoded, self.z_encoded)
         # generate fake_B_random
-        self.fake_B_random = self.netG.forward(self.real_A_encoded, self.z_random)
+        self.fake_B_random = self.netG.forward(self.real_A_encoded, self.z_random)  # notice it uses real_A_encoded as input not real_A_random
         if self.opt.conditional_D:   # tedious conditoinal data
             self.fake_data_encoded = torch.cat([self.real_A_encoded, self.fake_B_encoded], 1)
             self.real_data_encoded = torch.cat([self.real_A_encoded, self.real_B_encoded], 1)
-            # FIXME: is the following a bug?
-            # self.fake_data_random = torch.cat([self.real_A_encoded, self.fake_B_random], 1)
-            # I corrected it
-            self.fake_data_random = torch.cat([self.real_A_random, self.fake_B_random], 1)
+            self.fake_data_random = torch.cat([self.real_A_encoded, self.fake_B_random], 1)
             self.real_data_random = torch.cat([self.real_A_random, self.real_B_random], 1)
         else:
             self.fake_data_encoded = self.fake_B_encoded
