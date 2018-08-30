@@ -91,7 +91,9 @@ class BiCycleGANModel(BaseModel):
     def backward_D(self, netD, real, fake, encoded):
         # Fake, stop backprop to the generator by detaching fake_B
         pred_fake = netD.forward(fake.detach())
-        if encoded:
+
+        if self.opt.use_features:
+        #if self.opt.us_features and encoded:
             # TODO: Get features from fake here
             self.fake_relu_1 = netD.relu_1_x  # 64x128x128
             self.fake_relu_2 = netD.relu_2_x  # 128x64x64
@@ -99,7 +101,9 @@ class BiCycleGANModel(BaseModel):
             self.fake_relu_4 = netD.relu_4_x  # 512x31x31
         # real
         pred_real = netD.forward(real)
-        if encoded:
+
+        if self.opt.use_features:
+        #if self.opt.us_features and encoded:
             self.real_relu_1 = netD.relu_1_x  # 64x128x128
             self.real_relu_2 = netD.relu_2_x  # 128x64x64
             self.real_relu_3 = netD.relu_3_x  # 256x32x32
@@ -110,12 +114,13 @@ class BiCycleGANModel(BaseModel):
         # Combined loss
         loss_D = loss_D_fake + loss_D_real
 
-        if self.opt.use_features and encoded:
-            self.loss_feat_1 = self.mse_loss(self.real_relu_1.detach(), self.fake_relu_1.detach())
-            self.loss_feat_2 = self.mse_loss(self.real_relu_2.detach(), self.fake_relu_2.detach())
-            self.loss_feat_3 = self.mse_loss(self.real_relu_3.detach(), self.fake_relu_3.detach())
-            self.loss_feat_4 = self.mse_loss(self.real_relu_4.detach(), self.fake_relu_4.detach())
-            self.loss_feat = self.loss_feat_1 + self.loss_feat_2 + self.loss_feat_3 + self.loss_feat_4
+        #if self.opt.use_features and encoded:
+        if self.opt.use_features:
+            loss_feat_1 = self.mse_loss(self.real_relu_1, self.fake_relu_1.detach())
+            loss_feat_2 = self.mse_loss(self.real_relu_2, self.fake_relu_2.detach())
+            loss_feat_3 = self.mse_loss(self.real_relu_3, self.fake_relu_3.detach())
+            loss_feat_4 = self.mse_loss(self.real_relu_4, self.fake_relu_4.detach())
+            self.loss_feat = loss_feat_1 + loss_feat_2 + loss_feat_3 + loss_feat_4
             loss_D += self.opt.lambda_features * self.loss_feat
 
         loss_D.backward()

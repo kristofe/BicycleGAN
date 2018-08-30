@@ -115,7 +115,7 @@ class Visualizer():
                     white_image = np.ones_like(
                         image_numpy.transpose([2, 0, 1])) * 255
                     images.append(white_image)
-                self.vis.images(images, nrow=nrows, win=self.display_id + 10 + offset,
+                self.vis.images(images, nrow=nrows, win=self.display_id + 1 + offset,
                                 opts=dict(title=title))
                 offset += 1
 
