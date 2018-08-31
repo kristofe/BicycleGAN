@@ -255,7 +255,7 @@ class BiCycleGANModel(BaseModel):
                 ret_dict['real_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.real_normal_encoded)
                 ret_dict['real_normal_random'] = self.gen_normals.convert_normals_to_image(self.real_normal_random)
 
-            if self.opt.use_features or True:  # TODO: make using features an option
+            if self.opt.use_features:
                 im_fr1 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_1)) # 64x128x128
                 im_rr1 = util.tensor2im(kdsutil.features2gridim(self.real_relu_1)) # 64x128x128
                 im_cr1 = util.tensor2im(kdsutil.features2gridim(torch.abs(self.real_relu_1 * self.fake_relu_1), normalize=True)) # 64x128x128
@@ -286,7 +286,10 @@ class BiCycleGANModel(BaseModel):
                 r4_dict['mod feat relu4'] = im_cr4
 
 
-        return ret_dict, r1_dict, r2_dict, r3_dict, r4_dict
+        if self.opt.use_features:
+            return ret_dict, r1_dict, r2_dict, r3_dict, r4_dict
+        else:
+            return ret_dict, []
 
     def normalize_features(self, feats, eps=1e-10):
         print("Sum size: {}".format(sum.size()))

@@ -3,6 +3,8 @@
 # Example usage
 # bash scripts/train_terrain.sh -g 2 -d terrain_2560/aligned/ -z 2 -i 150
 
+# 8/31/2018  good setting is LAMBDA_L1 = 20 --use_features lambda_features 1e-6 on paper dataset. try 500 epochs. (250 looked alright)
+
 while getopts g:d:z:i:n:u: option; do
     case "${option}" in
         g) GPU="${OPTARG}"
@@ -30,12 +32,12 @@ CLASS='terrain'  # facades, day2night, edges2shoes, edges2handbags, maps
 
 # Default values for parameters that aren't passed
 [[ ! -z "${GPU}" ]] && GPU_ID=${GPU} || GPU_ID=0
-[[ ! -z "${DIR}" ]] && DATADIR=${DIR} || DATADIR='terrain_2560_small/aligned'
+[[ ! -z "${DIR}" ]] && DATADIR=${DIR} || DATADIR='paper'
 [[ ! -z "${Z_DIM}" ]] && NZ=${Z_DIM} || NZ=2
 [[ ! -z "${NUM_ITER}" ]] && NITER=${NUM_ITER} || NITER=50
 [[ ! -z "${NUM_ITER}" ]] && NITER_DECAY=${NUM_ITER} || NITER_DECAY=50
 [[ ! -z "${UPS}" ]] && UPSAMPLE=${UPS} || UPSAMPLE='basic'
-[[ ! -z "${LF}" ]] && LAMBDAF=${LF} || LAMBDAF=0.01
+[[ ! -z "${LF}" ]] && LAMBDAF=${LF} || LAMBDAF=0.000001
 [[ ! -z "${PNAME}" ]] && NAME=${PNAME} || NAME=${CLASS}_${MODEL}_${UPS}_${DATADIR}
 
 echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY} upsample: ${UPSAMPLE} lambda feat: ${LAMBDAF} name: ${NAME}"
@@ -52,7 +54,7 @@ INPUT_NC=3
 #UPSAMPLE='basic' #'nearest'  or 'basic'  or 'bilinear'
 WHERE_ADD='all'
 CONDITIONAL_D='--conditional_D'
-LAMBDA_L1=100 # default is 10
+LAMBDA_L1=20 # default is 10
 USE_L2='--use_L2'
 USE_NORMALS='--use_normals'
 USE_FEATURES='--use_features'
