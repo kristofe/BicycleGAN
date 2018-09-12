@@ -5,6 +5,7 @@ from torch.autograd import Variable
 import util.util as util
 from .base_model import BaseModel
 from  .heightmap_normals_loss import HeightmapNormalsLoss
+from  .heightmap_rendering_loss import HeightmapRenderingLoss
 import util.kdsutil as kdsutil
 
 
@@ -26,6 +27,7 @@ class BiCycleGANModel(BaseModel):
 
         if self.use_normals:
             self.gen_normals = HeightmapNormalsLoss(self.opt.gpu_ids)
+            self.gen_render = HeightmapRenderingLoss(self.opt.gpu_ids)
         self.skip = False
         self.mse_loss = torch.nn.MSELoss()
 
@@ -77,6 +79,11 @@ class BiCycleGANModel(BaseModel):
             self.fake_normal_random = self.gen_normals(self.fake_B_random)
             self.real_normal_encoded = self.gen_normals(self.real_B_encoded)
             self.real_normal_random = self.gen_normals(self.real_B_random)
+
+            self.fake_render_encoded = self.gen_render(self.fake_B_encoded, self.fake_normal_encoded)
+            self.fake_render_random = self.gen_render(self.fake_B_random, self.fake_normal_random)
+            self.real_render_encoded = self.gen_render(self.real_B_encoded, self.real_normal_encoded)
+            self.real_render_random = self.gen_render(self.real_B_random, self.real_normal_random)
 
         # compute z_predict
         if self.opt.lambda_z > 0.0:
@@ -153,6 +160,8 @@ class BiCycleGANModel(BaseModel):
         if self.opt.lambda_L1 > 0.0:
             if self.use_normals:
                 self.loss_G_L1 = self.criterionL1(self.fake_normal_encoded, self.real_normal_encoded) * self.opt.lambda_L1
+                # TODO: integrate render based loos here!!!
+                #self.loss_G_L1 = self.criterionL1(self.fake_render_encoded, self.real_render_encoded) * self.opt.lambda_L1
             else:
                 self.loss_G_L1 = self.criterionL1(self.fake_B_encoded, self.real_B_encoded) * self.opt.lambda_L1
         else:
@@ -254,6 +263,10 @@ class BiCycleGANModel(BaseModel):
                 ret_dict['fake_normal_random'] = self.gen_normals.convert_normals_to_image(self.fake_normal_random)
                 ret_dict['real_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.real_normal_encoded)
                 ret_dict['real_normal_random'] = self.gen_normals.convert_normals_to_image(self.real_normal_random)
+                ret_dict['fake_render_encoded'] = self.gen_render.convert_render_to_image(self.fake_normal_encoded)
+                ret_dict['fake_render_random'] = self.gen_render.convert_render_to_image(self.fake_normal_random)
+                ret_dict['real_render_encoded'] = self.gen_render.convert_render_to_image(self.real_normal_encoded)
+                ret_dict['real_render_random'] = self.gen_render.convert_render_to_image(self.real_normal_random)
 
             if self.opt.use_features:
                 im_fr1 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_1)) # 64x128x128

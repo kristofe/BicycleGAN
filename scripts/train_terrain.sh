@@ -3,7 +3,8 @@
 # Example usage
 # bash scripts/train_terrain.sh -g 2 -d terrain_2560/aligned/ -z 2 -i 150
 
-# 8/31/2018  good setting is LAMBDA_L1 = 20 --use_features lambda_features 1e-6 on paper dataset. try 500 epochs. (250 looked alright)
+# 8/31/2018  good setting is LAMBDA_L1 = 20 --use_features lambda_features 1e-6 on paper dataset no_flip=False
+# try 500 epochs. (250 looked alright)
 
 while getopts g:d:z:i:n:u: option; do
     case "${option}" in
