@@ -23,7 +23,7 @@ class HeightmapRenderingLoss(torch.nn.Module):
 
     def get_blur_filters(self):
         c = 1.0/4.0
-        wts = torch.FloatTensor([
+        wts = self.Tensor([
             [
                 [
                     [ 0, c,  0],
@@ -38,13 +38,13 @@ class HeightmapRenderingLoss(torch.nn.Module):
         w = normals.size(3)
         h = normals.size(2)
         b = normals.size(0)
-        ld1 = torch.FloatTensor([
+        ld1 = self.Tensor([
             [0.7053],
             [-0.7053],
             [0.7053]
         ])  # normalized light dir from OGLViewer
 
-        ld2 = torch.FloatTensor([
+        ld2 =self.Tensor([
             [0.0],
             [0.0],
             [1.0]
@@ -59,7 +59,7 @@ class HeightmapRenderingLoss(torch.nn.Module):
         d1_img = dot1[:,0:1,:,:] + dot1[:,1:2,:,:] + dot1[:,2:3,:,:]
         #d2_img = dot2[:,0:1,:,:] + dot2[:,1:2,:,:] + dot2[:,2:3,:,:]
 
-        zero_values = torch.zeros(d1_img.size())
+        zero_values = d1_img.new_zeros(d1_img.size())
         d1_img = torch.max(d1_img, zero_values)
         #d2_img = torch.max(d2_img, zero_values)
         #diffuse_img = d1_img * 0.65 + d2_img * 0.3 + 0.05
@@ -67,13 +67,12 @@ class HeightmapRenderingLoss(torch.nn.Module):
 
         diffuse_img = diffuse_img * ao
 
-
-        diffuse_img_int = diffuse_img * 255
-        diffuse_img_int = diffuse_img_int[0,0:1,:,:]
-        diffuse_img_int = diffuse_img_int.expand(3, h, w)
-        diffuse_img_int = diffuse_img_int.permute(1,2,0)
+        #diffuse_img_int = diffuse_img * 255
+        #diffuse_img_int = diffuse_img_int[0,0:1,:,:]
+        #diffuse_img_int = diffuse_img_int.expand(3, h, w)
+        #diffuse_img_int = diffuse_img_int.permute(1,2,0)
         #im = Image.fromarray(diffuse_img_int.numpy().astype(np.uint8))
-        return diffuse_img_int
+        return diffuse_img
 
     def simplistic_height_to_AO(self, x, wts, scale=4.0):
         assert(x.dim() == 4)  # assume its a batch of 2D images
@@ -102,10 +101,11 @@ class HeightmapRenderingLoss(torch.nn.Module):
 
     @staticmethod
     def render_tensor2im(t):
-        # assumes 1 x 3 x W x H tensor
+        #t = t.squeeze().expand(3, t.size(1), t.size(2)).permute(1,2,0)
         t = t * 255
-        print("render_tensor2im input size: {}".format(t.size()))
-        t = t.squeeze().expand(3, t.size(1), t.size(2)).permute(1,2,0)
+        t = t[0,0:1,:,:]
+        t = t.expand(3, t.size(1), t.size(2))
+        t = t.permute(1,2,0)
         return t.detach().cpu().float().numpy().astype(np.uint8)
 
     @staticmethod
@@ -121,18 +121,18 @@ class HeightmapRenderingLoss(torch.nn.Module):
         #    img = self.normals_to_image(normals[i])
         #    imgs.append(img)
         #return img
-        return self.render_tensor2im(render[0])
+        return self.render_tensor2im(render)
 
-    def forward(self, *x):
-        generated_height_data, normals = x[0], x[1]
+    def forward(self, x, normals):
+        #generated_height_data, normals = x[0], x[1]
         self.last_normals = normals
-        b = generated_height_data.size(0)
+        b = x.size(0)
 
-        if generated_height_data.size(1) != 1:
-            generated_height_data = generated_height_data[:,0:1,:,:]
+        if x.size(1) != 1:
+           x = x[:,0:1,:,:]
 
         wts = HeightmapRenderingLoss.adjust_filters_to_batchsize(b, self.base_wts)
-        ao = self.simplistic_height_to_AO(generated_height_data, wts)
+        ao = self.simplistic_height_to_AO(x, wts)
         self.last_generated_pixels = self.normals_to_diffuse_render(normals, ao)
         return self.last_generated_pixels
 

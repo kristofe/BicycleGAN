@@ -256,17 +256,19 @@ class BiCycleGANModel(BaseModel):
         if self.opt.isTrain:
             fake_random = util.tensor2im(self.fake_B_random.data)
             fake_encoded = util.tensor2im(self.fake_B_encoded.data)
-            ret_dict['fake_random'] = fake_random
+            ret_dict['real_A_encoded2'] = real_A_encoded
             ret_dict['fake_encoded'] = fake_encoded
+            ret_dict['real_A_random2'] = real_A_random
+            ret_dict['fake_random'] = fake_random
             if self.opt.use_normals:
                 ret_dict['fake_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.fake_normal_encoded)
-                ret_dict['fake_normal_random'] = self.gen_normals.convert_normals_to_image(self.fake_normal_random)
                 ret_dict['real_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.real_normal_encoded)
+                ret_dict['fake_normal_random'] = self.gen_normals.convert_normals_to_image(self.fake_normal_random)
                 ret_dict['real_normal_random'] = self.gen_normals.convert_normals_to_image(self.real_normal_random)
-                ret_dict['fake_render_encoded'] = self.gen_render.convert_render_to_image(self.fake_normal_encoded)
-                ret_dict['fake_render_random'] = self.gen_render.convert_render_to_image(self.fake_normal_random)
-                ret_dict['real_render_encoded'] = self.gen_render.convert_render_to_image(self.real_normal_encoded)
-                ret_dict['real_render_random'] = self.gen_render.convert_render_to_image(self.real_normal_random)
+                ret_dict['fake_render_encoded'] = self.gen_render.convert_render_to_image(self.fake_render_encoded)
+                ret_dict['real_render_encoded'] = self.gen_render.convert_render_to_image(self.real_render_encoded)
+                ret_dict['fake_render_random'] = self.gen_render.convert_render_to_image(self.fake_render_random)
+                ret_dict['real_render_random'] = self.gen_render.convert_render_to_image(self.real_render_random)
 
             if self.opt.use_features:
                 im_fr1 = util.tensor2im(kdsutil.features2gridim(self.fake_relu_1)) # 64x128x128
