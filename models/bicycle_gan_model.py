@@ -159,9 +159,9 @@ class BiCycleGANModel(BaseModel):
         # 3, reconstruction |fake_B-real_B|
         if self.opt.lambda_L1 > 0.0:
             if self.use_normals:
-                self.loss_G_L1 = self.criterionL1(self.fake_normal_encoded, self.real_normal_encoded) * self.opt.lambda_L1
-                # TODO: integrate render based loos here!!!
-                #self.loss_G_L1 = self.criterionL1(self.fake_render_encoded, self.real_render_encoded) * self.opt.lambda_L1
+                #self.loss_G_L1 = self.criterionL1(self.fake_normal_encoded, self.real_normal_encoded) * self.opt.lambda_L1
+                # TODO: make using rendering loss an option!!!!
+                self.loss_G_L1 = self.criterionL1(self.fake_render_encoded, self.real_render_encoded) * self.opt.lambda_L1
             else:
                 self.loss_G_L1 = self.criterionL1(self.fake_B_encoded, self.real_B_encoded) * self.opt.lambda_L1
         else:
