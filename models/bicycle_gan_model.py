@@ -250,16 +250,20 @@ class BiCycleGANModel(BaseModel):
         real_A_random = util.tensor2im(self.real_A_random.data)
         real_B_encoded = util.tensor2im(self.real_B_encoded.data)
         real_B_random = util.tensor2im(self.real_B_random.data)
-        ret_dict = OrderedDict([('real_A_encoded', real_A_encoded), ('real_B_encoded', real_B_encoded),
-                                ('real_A_random', real_A_random), ('real_B_random', real_B_random)])
+        ret_dict = OrderedDict()#[('real_A_encoded', real_A_encoded), ('real_B_encoded', real_B_encoded),
+                                #('real_A_random', real_A_random), ('real_B_random', real_B_random)])
 
+        ret_dict['real_A_encoded'] = real_A_encoded
+        ret_dict['real_A_encoded2'] = real_A_encoded
+        ret_dict['real_A_random'] = real_A_random
+        ret_dict['real_A_random2'] = real_A_random
         if self.opt.isTrain:
             fake_random = util.tensor2im(self.fake_B_random.data)
             fake_encoded = util.tensor2im(self.fake_B_encoded.data)
-            ret_dict['real_A_encoded2'] = real_A_encoded
             ret_dict['fake_encoded'] = fake_encoded
-            ret_dict['real_A_random2'] = real_A_random
+            ret_dict['real_B_encoded'] = real_B_encoded
             ret_dict['fake_random'] = fake_random
+            ret_dict['real_B_random'] = real_B_random
             if self.opt.use_normals:
                 ret_dict['fake_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.fake_normal_encoded)
                 ret_dict['real_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.real_normal_encoded)
