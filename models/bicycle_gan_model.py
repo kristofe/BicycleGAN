@@ -22,11 +22,16 @@ class BiCycleGANModel(BaseModel):
         use_E = opt.isTrain or not opt.no_encode
         use_L2 = opt.isTrain and opt.use_L2
         BaseModel.initialize(self, opt)
-        self.use_normals = self.opt.use_normals
+        #self.use_normals = self.opt.use_normals
+        self.disc_normals = self.opt.disc_normals
+        print("DISCRIMINATOR IS USING NORMALS")
+        self.L1_render = self.opt.L1_render
+        print("L1 ON RENDER")
         self.init_data(opt, use_D=use_D, use_D2=use_D2, use_E=use_E, use_vae=True)
 
-        if self.use_normals:
+        if self.disc_normals:
             self.gen_normals = HeightmapNormalsLoss(self.opt.gpu_ids)
+        if self.L1_render:
             self.gen_render = HeightmapRenderingLoss(self.opt.gpu_ids)
         self.skip = False
         self.mse_loss = torch.nn.MSELoss()
@@ -52,6 +57,9 @@ class BiCycleGANModel(BaseModel):
         self.real_A_random = self.real_A[half_size:]
         self.real_B_encoded = self.real_B[0:half_size]
         self.real_B_random = self.real_B[half_size:]
+
+
+
         # get encoded z
         self.mu, self.logvar = self.netE.forward(self.real_B_encoded)
         std = self.logvar.mul(0.5).exp_()
@@ -63,6 +71,8 @@ class BiCycleGANModel(BaseModel):
         self.fake_B_encoded = self.netG.forward(self.real_A_encoded, self.z_encoded)
         # generate fake_B_random
         self.fake_B_random = self.netG.forward(self.real_A_encoded, self.z_random)  # notice it uses real_A_encoded as input not real_A_random
+
+
         if self.opt.conditional_D:   # tedious conditoinal data
             self.fake_data_encoded = torch.cat([self.real_A_encoded, self.fake_B_encoded], 1)
             self.real_data_encoded = torch.cat([self.real_A_encoded, self.real_B_encoded], 1)
@@ -74,16 +84,33 @@ class BiCycleGANModel(BaseModel):
             self.real_data_encoded = self.real_B_encoded
             self.real_data_random = self.real_B_random
 
-        if self.use_normals:
+        if self.disc_normals:
             self.fake_normal_encoded = self.gen_normals(self.fake_B_encoded)
             self.fake_normal_random = self.gen_normals(self.fake_B_random)
             self.real_normal_encoded = self.gen_normals(self.real_B_encoded)
             self.real_normal_random = self.gen_normals(self.real_B_random)
+            if self.opt.conditional_D:   # tedious conditoinal data
+                self.fake_data_encoded = torch.cat([self.real_A_encoded, self.fake_normal_encoded], 1)
+                self.real_data_encoded = torch.cat([self.real_A_encoded, self.real_normal_encoded], 1)
+                self.fake_data_random = torch.cat([self.real_A_encoded, self.fake_normal_random], 1)
+                self.real_data_random = torch.cat([self.real_A_random, self.real_normal_random], 1)
+            else:
+                self.fake_data_encoded = self.fake_B_normal_encoded
+                self.fake_data_random = self.fake_B_normal_random
+                self.real_data_encoded = self.real_B_normal_encoded
+                self.real_data_random = self.real_B_normal_random
 
-            self.fake_render_encoded = self.gen_render(self.fake_B_encoded, self.fake_normal_encoded)
-            self.fake_render_random = self.gen_render(self.fake_B_random, self.fake_normal_random)
-            self.real_render_encoded = self.gen_render(self.real_B_encoded, self.real_normal_encoded)
-            self.real_render_random = self.gen_render(self.real_B_random, self.real_normal_random)
+        if self.L1_render:
+            if not self.disc_normals:
+                self.fake_render_encoded = self.gen_render(self.fake_B_encoded, self.gen_normals(self.fake_B_encoded))
+                self.fake_render_random = self.gen_render(self.fake_B_random, self.gen_normals(self.fake_B_random))
+                self.real_render_encoded = self.gen_render(self.real_B_encoded, self.gen_normals(self.real_B_encoded))
+                self.real_render_random = self.gen_render(self.real_B_random, self.gen_normals(self.real_B_random))
+            else:
+                self.fake_render_encoded = self.gen_render(self.fake_B_encoded, self.fake_normal_encoded)
+                self.fake_render_random = self.gen_render(self.fake_B_random, self.fake_normal_random)
+                self.real_render_encoded = self.gen_render(self.real_B_encoded, self.real_normal_encoded)
+                self.real_render_random = self.gen_render(self.real_B_random, self.real_normal_random)
 
         # compute z_predict
         if self.opt.lambda_z > 0.0:
@@ -158,7 +185,7 @@ class BiCycleGANModel(BaseModel):
             self.loss_kl = 0
         # 3, reconstruction |fake_B-real_B|
         if self.opt.lambda_L1 > 0.0:
-            if self.use_normals:
+            if self.L1_render:
                 #self.loss_G_L1 = self.criterionL1(self.fake_normal_encoded, self.real_normal_encoded) * self.opt.lambda_L1
                 # TODO: make using rendering loss an option!!!!
                 self.loss_G_L1 = self.criterionL1(self.fake_render_encoded, self.real_render_encoded) * self.opt.lambda_L1
@@ -248,8 +275,12 @@ class BiCycleGANModel(BaseModel):
     def get_current_visuals(self):
         real_A_encoded = util.tensor2im(self.real_A_encoded.data)
         real_A_random = util.tensor2im(self.real_A_random.data)
-        real_B_encoded = util.tensor2im(self.real_B_encoded.data)
-        real_B_random = util.tensor2im(self.real_B_random.data)
+        if self.disc_normals:
+            real_B_encoded = util.tensor2im(self.real_normal_encoded.data)
+            real_B_random = util.tensor2im(self.real_normal_random.data)
+        else:
+            real_B_encoded = util.tensor2im(self.real_B_encoded.data)
+            real_B_random = util.tensor2im(self.real_B_random.data)
         ret_dict = OrderedDict()#[('real_A_encoded', real_A_encoded), ('real_B_encoded', real_B_encoded),
                                 #('real_A_random', real_A_random), ('real_B_random', real_B_random)])
 
@@ -258,17 +289,22 @@ class BiCycleGANModel(BaseModel):
         ret_dict['real_A_random'] = real_A_random
         ret_dict['real_A_random2'] = real_A_random
         if self.opt.isTrain:
-            fake_random = util.tensor2im(self.fake_B_random.data)
-            fake_encoded = util.tensor2im(self.fake_B_encoded.data)
+            if self.disc_normals:
+                fake_random = util.tensor2im(self.fake_normal_random.data)
+                fake_encoded = util.tensor2im(self.fake_normal_encoded.data)
+            else:
+                fake_random = util.tensor2im(self.fake_B_random.data)
+                fake_encoded = util.tensor2im(self.fake_B_encoded.data)
             ret_dict['fake_encoded'] = fake_encoded
             ret_dict['real_B_encoded'] = real_B_encoded
             ret_dict['fake_random'] = fake_random
             ret_dict['real_B_random'] = real_B_random
-            if self.opt.use_normals:
-                ret_dict['fake_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.fake_normal_encoded)
-                ret_dict['real_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.real_normal_encoded)
-                ret_dict['fake_normal_random'] = self.gen_normals.convert_normals_to_image(self.fake_normal_random)
-                ret_dict['real_normal_random'] = self.gen_normals.convert_normals_to_image(self.real_normal_random)
+            #if self.opt.disc_normals:
+            #    ret_dict['fake_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.fake_normal_encoded)
+            #    ret_dict['real_normal_encoded'] = self.gen_normals.convert_normals_to_image(self.real_normal_encoded)
+            #    ret_dict['fake_normal_random'] = self.gen_normals.convert_normals_to_image(self.fake_normal_random)
+            #    ret_dict['real_normal_random'] = self.gen_normals.convert_normals_to_image(self.real_normal_random)
+            if self.opt.L1_render:
                 ret_dict['fake_render_encoded'] = self.gen_render.convert_render_to_image(self.fake_render_encoded)
                 ret_dict['real_render_encoded'] = self.gen_render.convert_render_to_image(self.real_render_encoded)
                 ret_dict['fake_render_random'] = self.gen_render.convert_render_to_image(self.fake_render_random)

@@ -38,7 +38,7 @@ CLASS='terrain'  # facades, day2night, edges2shoes, edges2handbags, maps
 [[ ! -z "${NUM_ITER}" ]] && NITER=${NUM_ITER} || NITER=50
 [[ ! -z "${NUM_ITER}" ]] && NITER_DECAY=${NUM_ITER} || NITER_DECAY=50
 [[ ! -z "${UPS}" ]] && UPSAMPLE=${UPS} || UPSAMPLE='basic'
-[[ ! -z "${LF}" ]] && LAMBDAF=${LF} || LAMBDAF=0.000001
+[[ ! -z "${LF}" ]] && LAMBDAF=${LF} || LAMBDAF=-0.00005
 [[ ! -z "${PNAME}" ]] && NAME=${PNAME} || NAME=${CLASS}_${MODEL}_${UPS}_${DATADIR}
 
 echo "GPU_ID: ${GPU_ID} datadir: ${DATADIR} z length: ${NZ}  iter count: ${NITER} ${NITER_DECAY} upsample: ${UPSAMPLE} lambda feat: ${LAMBDAF} name: ${NAME}"
@@ -55,9 +55,10 @@ INPUT_NC=3
 #UPSAMPLE='basic' #'nearest'  or 'basic'  or 'bilinear'
 WHERE_ADD='all'
 CONDITIONAL_D='--conditional_D'
-LAMBDA_L1=20 # default is 10
+LAMBDA_L1=10 # default is 10
 USE_L2='--use_L2'
-USE_NORMALS='--use_normals'
+DISC_NORMALS='--disc_normals'
+L1_RENDER='--L1_render'
 USE_FEATURES='--use_features'
 WHICH_MODEL_NETD='basic_256'
 WHICH_MODEL_NETD2='basic_256'
@@ -93,7 +94,8 @@ CUDA_VISIBLE_DEVICES=${GPU_ID} python ./train.py \
   ${CONDITIONAL_D} \
   --lambda_L1 ${LAMBDA_L1} \
   ${USE_L2} \
-  ${USE_NORMALS} \
+  ${L1_RENDER} \
+  ${DISC_NORMALS} \
   ${USE_FEATURES} \
   --lambda_features ${LAMBDAF} \
   --which_model_netD ${WHICH_MODEL_NETD} \

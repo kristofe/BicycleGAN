@@ -30,7 +30,9 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--lambda_kl', type=float, default=0.01, help='weight for KL loss')
         self.parser.add_argument('--use_same_D', action='store_true', help='if two Ds share the weights or not')
         self.parser.add_argument('--use_L2', action='store_true', help='use L2 instead of L1 for regularization loss')
-        self.parser.add_argument('--use_normals', action='store_true', help='use L1 on normals instead of L1 on pixels for regularization loss')
+        #self.parser.add_argument('--use_normals', action='store_true', help='use L1 on normals instead of L1 on pixels for regularization loss')
+        self.parser.add_argument('--L1_render', action='store_true', help='use L1 on render instead of L1 on heights for regularization loss')
         self.parser.add_argument('--use_features', action='store_true', help='use features based loss')
+        self.parser.add_argument('--disc_normals', action='store_true', help='discriminator input is normals not heights')
         self.parser.add_argument('--lambda_features', type=float, default=0.01, help='weight for features based loss')
         self.isTrain = True

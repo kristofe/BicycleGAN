@@ -31,7 +31,7 @@ for epoch in range(1, opt.niter + opt.niter_decay + 1):
         if save_result or total_steps % opt.display_freq == 0:
             save_result = save_result or total_steps % opt.update_html_freq == 0
             visualizer.display_current_results(
-                model.get_current_visuals()[0], epoch, ncols=4, save_result=save_result)
+                model.get_current_visuals()[0], epoch, ncols=3, save_result=save_result)
             #visualizer.display_current_feature_results(
             #    model.get_current_visuals()[1:], epoch, ncols=1, save_result=save_result)
             save_result = False
